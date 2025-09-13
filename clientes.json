@@ -1,0 +1,32 @@
+[
+  {
+    "nome": "Vagner Silva",
+    "login": "vagner123",
+    "senha": "senha123",
+    "telefone": "11999999999",
+    "email": "vagner@goblins.com",
+    "dispositivo": "ABC123XYZ",
+    "chave": "GOBLIN-1234",
+    "ip": "192.168.0.101"
+  },
+  {
+    "nome": "Rage Dev",
+    "login": "ragegoblin",
+    "senha": "goblinsupremo",
+    "telefone": "11988888888",
+    "email": "rage@goblins.com",
+    "dispositivo": "DEF456LMN",
+    "chave": "GOBLIN-5678",
+    "ip": "192.168.0.102"
+  },
+  {
+    "nome": "Teste Inativo",
+    "login": "testeuser",
+    "senha": "senha999",
+    "telefone": "11977777777",
+    "email": "teste@goblins.com",
+    "dispositivo": "ZZZ000AAA",
+    "chave": "GOBLIN-9999",
+    "ip": "192.168.0.103"
+  }
+]

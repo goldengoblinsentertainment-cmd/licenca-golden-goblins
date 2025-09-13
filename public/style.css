@@ -1,0 +1,80 @@
+/* Fundo geral */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: url('/bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: #fff;
+}
+
+/* Container central */
+.container {
+  background: rgba(0, 0, 0, 0.75);
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 900px;
+  margin: 50px auto;
+  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Logo */
+.logo {
+  display: block;
+  margin: 0 auto 20px auto;
+  max-width: 200px;
+}
+
+/* Títulos */
+h1, h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Formulários */
+form {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+input {
+  padding: 10px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
+  width: 200px;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  background-color: #ffd700;
+  color: #000;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #ffcc00;
+}
+
+/* Tabela */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  color: #000;
+  margin-bottom: 20px;
+}
+
+th, td {
+  padding: 10px;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+th {
+  background-color: #444;
+  color: #fff;
+}

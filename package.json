@@ -6,6 +6,19 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.18.2"
-  }
+    "express": "^4.21.2",
+    "express-session": "^1.18.2"
+  },
+  "description": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goldengoblinsentertainment-cmd/licenca-golden-goblins.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/goldengoblinsentertainment-cmd/licenca-golden-goblins/issues"
+  },
+  "homepage": "https://github.com/goldengoblinsentertainment-cmd/licenca-golden-goblins#readme"
 }

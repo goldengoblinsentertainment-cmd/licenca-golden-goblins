@@ -1,0 +1,31 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #111 url('bg.jpg') no-repeat center center fixed;
+  background-size: cover;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  background: rgba(0,0,0,0.7);
+  padding: 40px;
+  margin: 50px auto;
+  max-width: 600px;
+  border-radius: 10px;
+}
+
+button {
+  background: gold;
+  border: none;
+  color: black;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.logo {
+  width: 120px;
+  margin-bottom: 20px;
+}
