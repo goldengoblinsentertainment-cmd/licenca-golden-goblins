@@ -14,25 +14,24 @@ app.use(session({
   saveUninitialized: true
 }));
 
+// Caminhos absolutos para os arquivos
+const clientesPath = path.join(__dirname, 'clientes.json');
+const licencasPath = path.join(__dirname, 'licencas.json');
+
 function authAdmin(req, res, next) {
-  if (req.session && req.session.logadoAdmin) {
-    next();
-  } else {
-    res.redirect('/admin');
-  }
+  if (req.session?.logadoAdmin) next();
+  else res.redirect('/admin');
 }
 
 function authCliente(req, res, next) {
-  if (req.session && req.session.cliente) {
-    next();
-  } else {
-    res.redirect('/cliente-login');
-  }
+  if (req.session?.cliente) next();
+  else res.redirect('/cliente-login');
 }
 
+// Painel admin
 app.get('/admin', (req, res) => {
-  const licencas = JSON.parse(fs.readFileSync('licencas.json'));
-  const clientes = JSON.parse(fs.readFileSync('clientes.json'));
+  const licencas = JSON.parse(fs.readFileSync(licencasPath));
+  const clientes = JSON.parse(fs.readFileSync(clientesPath));
   const logado = req.session.logadoAdmin;
   const busca = req.query.busca || '';
 
@@ -113,6 +112,7 @@ app.get('/admin', (req, res) => {
   res.send(html);
 });
 
+// Login admin
 app.post('/admin-login', (req, res) => {
   const { usuario, senha } = req.body;
   if (usuario === 'admin' && senha === 'admin') {
@@ -122,31 +122,32 @@ app.post('/admin-login', (req, res) => {
 });
 
 app.get('/admin-logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/admin');
-  });
+  req.session.destroy(() => res.redirect('/admin'));
 });
 
+// Gerar nova licença
 app.post('/gerar-licenca', authAdmin, (req, res) => {
-  const licencas = JSON.parse(fs.readFileSync('licencas.json'));
+  const licencas = JSON.parse(fs.readFileSync(licencasPath));
   const novaChave = 'GOBLIN-' + crypto.randomBytes(4).toString('hex').toUpperCase();
   licencas.push({ chave: novaChave, ativa: true });
-  fs.writeFileSync('licencas.json', JSON.stringify(licencas, null, 2));
+  fs.writeFileSync(licencasPath, JSON.stringify(licencas, null, 2));
+  console.log('Licença gerada:', novaChave);
   res.redirect('/admin');
 });
 
+// Excluir licença
 app.post('/excluir-licenca', authAdmin, (req, res) => {
   const { chave } = req.body;
-  let licencas = JSON.parse(fs.readFileSync('licencas.json'));
+  let licencas = JSON.parse(fs.readFileSync(licencasPath));
   licencas = licencas.filter(l => l.chave !== chave);
-  fs.writeFileSync('licencas.json', JSON.stringify(licencas, null, 2));
+  fs.writeFileSync(licencasPath, JSON.stringify(licencas, null, 2));
   res.redirect('/admin');
 });
 
+// Registro de cliente
 app.get('/registro', (req, res) => {
   let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  ip = ip.replace(/^.*:/, ''); // remove prefixos como ::ffff:
-  
+  ip = ip.replace(/^.*:/, '');
   res.send(`
     <link rel="stylesheet" href="/style.css">
     <div class="container">
@@ -170,8 +171,8 @@ app.get('/registro', (req, res) => {
 
 app.post('/registro', (req, res) => {
   const { nome, login, senha, telefone, email, dispositivo, chave, ip } = req.body;
-  const licencas = JSON.parse(fs.readFileSync('licencas.json'));
-  const clientes = JSON.parse(fs.readFileSync('clientes.json'));
+  const licencas = JSON.parse(fs.readFileSync(licencasPath));
+  const clientes = JSON.parse(fs.readFileSync(clientesPath));
 
   const chaveValida = licencas.find(l => l.chave === chave && l.ativa);
   const jaRegistrado = clientes.find(c => c.chave === chave);
@@ -182,10 +183,18 @@ app.post('/registro', (req, res) => {
   if (loginExistente) return res.send('Este login já está em uso.');
 
   clientes.push({ nome, login, senha, telefone, email, dispositivo, chave, ip });
-  fs.writeFileSync('clientes.json', JSON.stringify(clientes, null, 2));
-  res.send('Registro concluído com sucesso!');
+
+  try {
+    fs.writeFileSync(clientesPath, JSON.stringify(clientes, null, 2));
+    console.log('Cliente registrado:', login);
+    res.send('Registro concluído com sucesso!');
+  } catch (err) {
+    console.error('Erro ao salvar cliente:', err);
+    res.status(500).send('Erro ao registrar cliente.');
+  }
 });
 
+// Login cliente
 app.get('/cliente-login', (req, res) => {
   res.send(`
     <link rel="stylesheet" href="/style.css">
@@ -202,115 +211,8 @@ app.get('/cliente-login', (req, res) => {
 
 app.post('/cliente-login', (req, res) => {
   const { login, senha } = req.body;
-  const clientes = JSON.parse(fs.readFileSync('clientes.json'));
+  const clientes = JSON.parse(fs.readFileSync(clientesPath));
   const cliente = clientes.find(c => c.login === login && c.senha === senha);
   if (cliente) {
     req.session.cliente = cliente;
     res.redirect('/painel-cliente');
-  } else {
-    res.send('Login ou senha inválidos.');
-  }
-});
-
-app.get('/painel-cliente', authCliente, (req, res) => {
-  const c = req.session.cliente;
-  res.send(`
-    <link rel="stylesheet" href="/style.css">
-    <div class="container">
-      <h1>Bem-vindo, ${c.nome}</h1>
-      <p><strong>Login:</strong> ${c.login}</p>
-      <p><strong>Email:</strong> ${c.email}</p>
-      <p><strong>Telefone:</strong> ${c.telefone}</p>
-      <p><strong>Dispositivo:</strong> ${c.dispositivo}</p>
-      <p><strong>IP registrado:</strong> ${c.ip}</p>
-      <p><strong>Chave de licença:</strong> ${c.chave}</p>
-
-      <h2>Alterar senha</h2>
-      <form method="POST" action="/editar-senha">
-        <input name="novaSenha" type="password" placeholder="Nova senha" required />
-        <button type="submit">Atualizar senha</button>
-      </form>
-
-      <form method="GET" action="/cliente-logout">
-        <button>Sair</button>
-      </form>
-    </div>
-  `);
-});
-
-
-app.post('/editar-senha', authCliente, (req, res) => {
-  const { novaSenha } = req.body;
-  const clientes = JSON.parse(fs.readFileSync('clientes.json'));
-  const loginAtual = req.session.cliente.login;
-
-  const cliente = clientes.find(c => c.login === loginAtual);
-  if (cliente) {
-    cliente.senha = novaSenha;
-    fs.writeFileSync('clientes.json', JSON.stringify(clientes, null, 2));
-    req.session.cliente = cliente;
-    res.send(`
-      <link rel="stylesheet" href="/style.css">
-      <div class="container">
-        <h1>Senha atualizada com sucesso!</h1>
-        <a href="/painel-cliente"><button>Voltar ao painel</button></a>
-      </div>
-    `);
-  } else {
-    res.send('Erro ao atualizar senha.');
-  }
-});
-
-app.get('/cliente-logout', (req, res) => {
-  req.session.destroy(() => {
-    res.redirect('/cliente-login');
-  });
-});
-
-app.post('/validar', (req, res) => {
-  const { chave, dispositivo } = req.body;
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-  const clientes = JSON.parse(fs.readFileSync('clientes.json'));
-
-  const cliente = clientes.find(c =>
-    c.chave === chave &&
-    c.dispositivo === dispositivo &&
-    c.ip === ip
-  );
-
-  if (cliente) {
-    res.json({ valida: true, usuario: cliente.nome });
-  } else {
-    res.json({ valida: false });
-  }
-});
-
-app.get('/', (req, res) => {
-  res.send(`
-    <link rel="stylesheet" href="/style.css">
-    <div class="container">
-      <img src="/logo.png" class="logo" alt="Logo Golden Goblins">
-      <h1>Bem-vindo ao sistema Golden Goblins</h1>
-      <p>Escolha uma opção abaixo:</p>
-
-      <div style="display:flex; gap:20px; justify-content:center; margin-top:20px; flex-wrap:wrap;">
-        <form method="GET" action="/admin">
-          <button style="padding:10px 20px;">Painel do Administrador</button>
-        </form>
-
-        <form method="GET" action="/registro">
-          <button style="padding:10px 20px;">Registro de Cliente</button>
-        </form>
-
-        <form method="GET" action="/cliente-login">
-          <button style="padding:10px 20px;">Login do Cliente</button>
-        </form>
-      </div>
-    </div>
-  `);
-});
-
-app.listen(3000, () => {
-  console.log('Servidor rodando na porta 3000');
-});
-
